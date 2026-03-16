@@ -1,9 +1,9 @@
 services:
-  hmpps-template-kotlin:
-    image: ghcr.io/ministryofjustice/hmpps-template-kotlin:latest
+  hmpps-people-on-probation-api:
+    image: ghcr.io/ministryofjustice/hmpps-people-on-probation-api:latest
     networks:
       - hmpps
-    container_name: hmpps-template-kotlin
+    container_name: hmpps-people-on-probation-api
     ports:
       - "8080:8080"
     healthcheck:
