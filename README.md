@@ -2,155 +2,252 @@
 
 [![Ministry of Justice Repository Compliance Badge](https://github-community.service.justice.gov.uk/repository-standards/api/hmpps-people-on-probation-api/badge?style=flat)](https://github-community.service.justice.gov.uk/repository-standards/hmpps-people-on-probation-api)
 [![Docker Repository on ghcr](https://img.shields.io/badge/ghcr.io-repository-2496ED.svg?logo=docker)](https://ghcr.io/ministryofjustice/hmpps-people-on-probation-api)
-[![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://people-on-probation-api-dev.hmpps.service.justice.gov.uk/swagger-ui/index.html)
 
-Template github repo used for new Kotlin based projects.
+API for exposing people-on-probation data backed by NDelius.
 
-# Instructions
+## Current endpoints
 
-If this is a HMPPS project then the project will be created as part of bootstrapping -
-see [hmpps-project-bootstrap](https://github.com/ministryofjustice/hmpps-project-bootstrap). You are able to specify a
-template application using the `github_template_repo` attribute to clone without the need to manually do this yourself
-within GitHub.
+All endpoints are versioned under `/v1/person/{crn}`.
 
-This project is community managed by the mojdt `#kotlin-dev` slack channel.
-Please raise any questions or queries there. Contributions welcome!
+- `GET /name`
+- `GET /personal-details`
+- `GET /sentences`
+- `GET /past-appointments?page=0&size=10`
+- `GET /future-appointments?page=0&size=10`
 
-Our security policy is located [here](https://github.com/ministryofjustice/hmpps-people-on-probation-api/security/policy).
+## Tech stack
 
-Documentation to create new service is located [here](https://tech-docs.hmpps.service.justice.gov.uk/creating-new-services/).
+- Kotlin
+- Spring Boot
+- Spring Security resource server
+- Spring WebClient for outbound NDelius calls
+- WireMock-backed integration tests
 
-## Creating a Cloud Platform namespace
+## Configuration
 
-When deploying to a new namespace, you may wish to use the
-[templates project namespace](https://github.com/ministryofjustice/cloud-platform-environments/tree/main/namespaces/live.cloud-platform.service.justice.gov.uk/hmpps-templates-dev)
-as the basis for your new namespace. This namespace contains both the kotlin and typescript template projects,
-which is the usual way that projects are setup.
+The application expects these environment variables:
 
-Copy this folder and update all the existing namespace references to correspond to the environment to which you're deploying.
+- `HMPPS_AUTH_URL`
+- `NDELIUS_API_URL`
+- `NDELIUS_API_CLIENT_ID`
+- `NDELIUS_API_CLIENT_SECRET`
 
-If you only need the kotlin configuration then remove all typescript references and remove the elasticache configuration.
+`application.yml` defines those properties directly. Helm values provide them in deployed environments.
 
-To ensure the correct github teams can approve releases, you will need to make changes to the configuration in `resources/service-account-github` where the appropriate team names will need to be added (based on [lines 98-100](https://github.com/ministryofjustice/cloud-platform-environments/blob/main/namespaces/live.cloud-platform.service.justice.gov.uk/hmpps-templates-dev/resources/serviceaccount-github.tf#L98) and the reference appended to the teams list below [line 112](https://github.com/ministryofjustice/cloud-platform-environments/blob/main/namespaces/live.cloud-platform.service.justice.gov.uk/hmpps-templates-dev/resources/serviceaccount-github.tf#L112)). Note: hmpps-sre is in this list to assist with deployment issues.
+## Running locally
 
-Submit a PR to the Cloud Platform team in [#ask-cloud-platform](https://moj.enterprise.slack.com/archives/C57UPMZLY).
-Further instructions from the Cloud Platform team can be found in the [Cloud Platform User Guide](https://user-guide.cloud-platform.service.justice.gov.uk/#cloud-platform-user-guide)
+There are four local modes.
 
-## Renaming from HMPPS People On Probation Api - github Actions
+### 1. Real NDelius integration
 
-Once the new repository is deployed. Navigate to the repository in github, and select the `Actions` tab.
-Click the link to `Enable Actions on this repository`.
+Use this when you want actual responses from the dev NDelius environment.
 
-Find the Action workflow named: `rename-project-create-pr` and click `Run workflow`. This workflow will
-execute the `rename-project.bash` and create Pull Request for you to review. Review the PR and merge.
-
-Note: ideally this workflow would run automatically however due to a recent change github Actions are not
-enabled by default on newly created repos. There is no way to enable Actions other then to click the button in the UI.
-If this situation changes we will update this project so that the workflow is triggered during the bootstrap project.
-Further reading: <https://github.community/t/workflow-isnt-enabled-in-repos-generated-from-template/136421>
-
-The script takes six arguments:
-
-### New project name
-
-This should start with `hmpps-` e.g. `hmpps-prison-visits` so that it can be easily distinguished in github from
-other departments projects. Try to avoid using abbreviations so that others can understand easily what your project is.
-
-### Slack channel for release notifications
-
-By default, release notifications are only enabled for production. The circleci configuration can be amended to send
-release notifications for deployments to other environments if required. Note that if the configuration is amended,
-the slack channel should then be amended to your own team's channel as `dps-releases` is strictly for production release
-notifications. If the slack channel is set to something other than `dps-releases`, production release notifications
-will still automatically go to `dps-releases` as well. This is configured by `releases-slack-channel` in
-`.circleci/config.yml`.
-
-### Slack channel for pipeline security notifications
-
-Ths channel should be specific to your team and is for daily / weekly security scanning job results. It is your team's
-responsibility to keep up-to-date with security issues and update your application so that these jobs pass. You will
-only be notified if the jobs fail. The scan results can always be found in circleci for your project. This is
-configured by `alerts-slack-channel` in `.circleci/config.yml`.
-
-### Non production kubernetes alerts
-
-By default Prometheus alerts are created in the application namespaces to monitor your application e.g. if your
-application is crash looping, there are a significant number of errors from the ingress. Since Prometheus runs in
-cloud platform AlertManager needs to be setup first with your channel. Please see
-[Create your own custom alerts](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html)
-in the Cloud Platform user guide. Once that is setup then the `custom severity label` can be used for
-`alertSeverity` in the `helm_deploy/values-*.yaml` configuration.
-
-Normally it is worth setting up two separate labels and therefore two separate slack channels - one for your production
-alerts and one for your non-production alerts. Using the same channel can mean that production alerts are sometimes
-lost within non-production issues.
-
-### Production kubernetes alerts
-
-This is the severity label for production, determined by the `custom severity label`. See the above
-[Non production kubernetes alerts section](non-production-kubernetes-alerts) for more information. This is configured in `helm_deploy/values-prod.yaml`.
-
-### Product ID
-
-This is so that we can link a component to a product and thus provide team and product information in the Developer
-Portal. Refer to the developer portal at <https://developer-portal.hmpps.service.justice.gov.uk/products> to find your
-product id. This is configured in `helm_deploy/<project_name>/values.yaml`.
-
-## Manually branding from template app
-
-Run the `rename-project.bash` without any arguments. This will prompt for the six required parameters and create a PR.
-The script requires a recent version of `bash` to be installed, as well as GNU `sed` in the path.
-
-## Common Kotlin patterns
-
-Many patterns have evolved for HMPPS Kotlin applications. Using these patterns provides consistency across our suite of
-Kotlin microservices and allows you to concentrate on building your business needs rather than reinventing the
-technical approach.
-
-Documentation for these patterns can be found in the [HMPPS tech docs](https://tech-docs.hmpps.service.justice.gov.uk/common-kotlin-patterns/).
-If this documentation is incorrect or needs improving please report to [#ask-prisons-digital-sre](https://moj.enterprise.slack.com/archives/C06MWP0UKDE)
-or [raise a PR](https://github.com/ministryofjustice/hmpps-tech-docs).
-
-## Running the application locally
-
-The application comes with a `dev` spring profile that includes default settings for running locally. This is not
-necessary when deploying to kubernetes as these values are included in the helm configuration templates -
-e.g. `values-dev.yaml`.
-
-There is also a `docker-compose.yml` that can be used to run a local instance of the template in docker and also an
-instance of HMPPS Auth (required if your service calls out to other services using a token).
+Set:
 
 ```bash
-docker compose pull && docker compose up
+export HMPPS_AUTH_URL="https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
+export NDELIUS_API_URL="https://manage-my-community-sentence-and-delius-dev.hmpps.service.justice.gov.uk/"
+export NDELIUS_API_CLIENT_ID="<real-client-id>"
+export NDELIUS_API_CLIENT_SECRET="<real-client-secret>"
 ```
 
-will run the application and HMPPS Auth within a local docker instance.
+Run with:
 
-### Running the application in Intellij
+```bash
+./gradlew bootRun --args='--spring.profiles.active=dev,local'
+```
+
+Or in IntelliJ:
+
+- Main class: `uk.gov.justice.digital.hmpps.peopleonprobationapi.PeopleOnProbationApiKt`
+- Active profiles: `dev,local`
+- Environment variables: the four variables above
+
+Why `local`:
+
+- `dev` gives dev URLs and Swagger
+- `local` enables the local inbound auth bypass for manual testing only
+
+With those profiles, Swagger is available at:
+
+- `http://localhost:8080/swagger-ui/index.html`
+- `http://localhost:8080/v3/api-docs`
+
+Then call the API without an inbound bearer token, for example:
+
+```bash
+curl -i 'http://localhost:8080/v1/person/X990176/name'
+curl -i 'http://localhost:8080/v1/person/X990176/personal-details'
+curl -i 'http://localhost:8080/v1/person/X990176/sentences'
+curl -i 'http://localhost:8080/v1/person/X990176/past-appointments?page=0&size=10'
+curl -i 'http://localhost:8080/v1/person/X990176/future-appointments?page=0&size=10'
+```
+
+Important:
+
+- the `local` profile bypasses inbound auth only
+- outbound NDelius auth still uses the real client credentials above
+- do not use the `local` profile in deployed environments
+
+### 2. Mocked/local-only mode
+
+Use this when you only need local startup or test support.
+
+The repo includes `docker-compose.yml` with local `hmpps-auth`:
 
 ```bash
 docker compose pull && docker compose up --scale hmpps-people-on-probation-api=0
 ```
 
-will just start a docker instance of HMPPS Auth. The application should then be started with a `dev` active profile
-in Intellij.
+That starts only local auth on port `8090`.
 
-### Building and running the docker image locally
+This is useful for fully local or mocked development, but not for real NDelius integration. A token from local `hmpps-auth` will not be accepted by the dev NDelius environment.
 
-The `Dockerfile` relies on the application being built first. Steps to build the docker image:
+### 3. Local build and development in Docker with real NDelius integration
+
+Use this when you want to build the application locally, run it in Docker, and still call the real dev NDelius environment.
+
+The `Dockerfile` relies on the application being built first.
+
 1. Build the jar files
-```
+
+```bash
 ./gradlew clean assemble
 ```
-2. Copy the jar files to the base directory so that the docker build can find them
-```
+
+2. Copy the jar files to the base directory so the Docker build can find them
+
+```bash
 cp build/libs/*.jar .
 ```
-3. Build the docker image with required arguments
+
+3. Build the Docker image with the required build arguments
+
+```bash
+docker build \
+  -t hmpps-people-on-probation-api:local \
+  --build-arg GIT_REF=21345 \
+  --build-arg GIT_BRANCH=bob \
+  --build-arg BUILD_NUMBER=$(date '+%Y-%m-%d') \
+  .
 ```
-docker build --build-arg GIT_REF=21345 --build-arg GIT_BRANCH=bob --build-arg BUILD_NUMBER=$(date '+%Y-%m-%d') .
+
+4. Run the Docker image with real dev auth and NDelius configuration
+
+```bash
+docker run \
+  -p 8080:8080 \
+  -e HMPPS_AUTH_URL="https://sign-in-dev.hmpps.service.justice.gov.uk/auth" \
+  -e NDELIUS_API_URL="https://manage-my-community-sentence-and-delius-dev.hmpps.service.justice.gov.uk/" \
+  -e NDELIUS_API_CLIENT_ID="<real-client-id>" \
+  -e NDELIUS_API_CLIENT_SECRET="<real-client-secret>" \
+  hmpps-people-on-probation-api:local
 ```
-4. Run the docker image, setting the auth url so that it starts up
+
+This mode does not use the `local` profile, so inbound authentication is not bypassed. If you want to call the running container manually, provide a valid inbound bearer token or use mode 1 instead.
+
+### 4. Run the latest published image from the container registry
+
+Use this when you want to run the latest published `hmpps-people-on-probation-api` image directly, without building locally.
+
+Pull the latest image:
+
+```bash
+docker pull ghcr.io/ministryofjustice/hmpps-people-on-probation-api:latest
 ```
-docker run -e HMPPS_AUTH_URL="https://sign-in-dev.hmpps.service.justice.gov.uk/auth" <sha from step 3>
+
+Run it with real dev auth and NDelius configuration:
+
+```bash
+docker run \
+  -p 8080:8080 \
+  -e HMPPS_AUTH_URL="https://sign-in-dev.hmpps.service.justice.gov.uk/auth" \
+  -e NDELIUS_API_URL="https://manage-my-community-sentence-and-delius-dev.hmpps.service.justice.gov.uk/" \
+  -e NDELIUS_API_CLIENT_ID="<real-client-id>" \
+  -e NDELIUS_API_CLIENT_SECRET="<real-client-secret>" \
+  -e SPRING_PROFILES_ACTIVE=dev \
+  ghcr.io/ministryofjustice/hmpps-people-on-probation-api:latest
 ```
+
+If you prefer using the image reference from `docker-compose.yml`, pull and run that service image directly:
+
+```bash
+docker compose pull hmpps-people-on-probation-api
+docker run \
+  -p 8080:8080 \
+  -e HMPPS_AUTH_URL="https://sign-in-dev.hmpps.service.justice.gov.uk/auth" \
+  -e NDELIUS_API_URL="https://manage-my-community-sentence-and-delius-dev.hmpps.service.justice.gov.uk/" \
+  -e NDELIUS_API_CLIENT_ID="<real-client-id>" \
+  -e NDELIUS_API_CLIENT_SECRET="<real-client-secret>" \
+  -e SPRING_PROFILES_ACTIVE=dev \
+  ghcr.io/ministryofjustice/hmpps-people-on-probation-api:latest
+```
+
+Like mode 3, this mode does not use the `local` profile, so inbound authentication is not bypassed.
+
+
+## Running tests
+
+Run the full suite:
+
+```bash
+./gradlew test
+```
+
+Run focused endpoint tests:
+
+```bash
+./gradlew test \
+  --tests 'uk.gov.justice.digital.hmpps.peopleonprobationapi.integration.person.PersonNameTest' \
+  --tests 'uk.gov.justice.digital.hmpps.peopleonprobationapi.integration.person.PersonPersonalDetailsTest' \
+  --tests 'uk.gov.justice.digital.hmpps.peopleonprobationapi.integration.person.PersonSentenceProgressTest' \
+  --tests 'uk.gov.justice.digital.hmpps.peopleonprobationapi.integration.person.PersonPastAppointmentsTest' \
+  --tests 'uk.gov.justice.digital.hmpps.peopleonprobationapi.integration.person.PersonFutureAppointmentsTest'
+```
+
+Integration tests use:
+
+- WireMock HMPPS Auth on `18090`
+- WireMock NDelius on `18091`
+
+They do not call Docker `hmpps-auth` or the real NDelius environment.
+
+## Project structure
+
+The main structure is feature-first with shared outbound integration:
+
+```text
+src/main/kotlin/uk/gov/justice/digital/hmpps/peopleonprobationapi
+├── config
+├── ndelius
+│   └── client
+└── person
+    ├── api
+    ├── domain
+    └── service
+```
+
+Rules used in the current implementation:
+
+- controllers handle HTTP only
+- services orchestrate use cases
+- `ndelius/client` owns downstream transport and mapping
+- domain models are separate from API response models
+
+## Deployment config
+
+Relevant Helm files:
+
+- base values: `helm_deploy/hmpps-people-on-probation-api/values.yaml`
+- dev overrides: `helm_deploy/values-dev.yaml`
+- preprod overrides: `helm_deploy/values-preprod.yaml`
+- prod overrides: `helm_deploy/values-prod.yaml`
+
+Deployed environments should provide:
+
+- `HMPPS_AUTH_URL`
+- `NDELIUS_API_URL`
+- `NDELIUS_API_CLIENT_ID`
+- `NDELIUS_API_CLIENT_SECRET`
+
+They should not use the `local` profile.

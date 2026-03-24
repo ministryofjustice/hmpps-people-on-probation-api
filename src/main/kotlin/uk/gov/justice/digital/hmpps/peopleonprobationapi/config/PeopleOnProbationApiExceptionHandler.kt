@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
+import uk.gov.justice.digital.hmpps.peopleonprobationapi.person.domain.PersonNotFoundException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
@@ -36,6 +37,17 @@ class PeopleOnProbationApiExceptionHandler {
         developerMessage = e.message,
       ),
     ).also { log.info("No resource found exception: {}", e.message) }
+
+  @ExceptionHandler(PersonNotFoundException::class)
+  fun handlePersonNotFoundException(e: PersonNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(NOT_FOUND)
+    .body(
+      ErrorResponse(
+        status = NOT_FOUND,
+        userMessage = e.message,
+        developerMessage = e.message,
+      ),
+    ).also { log.info("Person not found exception: {}", e.message) }
 
   @ExceptionHandler(AccessDeniedException::class)
   fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> = ResponseEntity

@@ -5,8 +5,14 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-hmpps-auth:
-  url: "http://localhost:8090/auth"
+api:
+  base:
+    url:
+      ndelius: "http://localhost:18091"
+
+HMPPS_AUTH_URL: "http://localhost:18090/auth"
+NDELIUS_API_CLIENT_ID: "ndelius-client"
+NDELIUS_API_CLIENT_SECRET: "clientsecret"
 
 springdoc:
   api-docs:
