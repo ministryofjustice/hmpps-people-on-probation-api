@@ -15,12 +15,18 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${hmpps-auth.url}/.well-known/jwks.json
+          jwk-set-uri: ${HMPPS_AUTH_URL}/.well-known/jwks.json
 
       client:
         provider:
           hmpps-auth:
-            token-uri: ${hmpps-auth.url}/oauth/token
+            token-uri: ${HMPPS_AUTH_URL}/oauth/token
+        registration:
+          ndelius:
+            provider: hmpps-auth
+            authorization-grant-type: client_credentials
+            client-id: ${NDELIUS_API_CLIENT_ID}
+            client-secret: ${NDELIUS_API_CLIENT_SECRET}
   http:
     codecs:
       max-in-memory-size: 10MB
@@ -63,3 +69,8 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+api:
+  base:
+    url:
+      ndelius: ${NDELIUS_API_URL}
