@@ -35,7 +35,7 @@ class DevSecurityConfiguration {
       context.authentication = UsernamePasswordAuthenticationToken(
         "dev-user",
         "N/A",
-        listOf(SimpleGrantedAuthority("SCOPE_read")),
+        listOf(SimpleGrantedAuthority("ROLE_PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI")),
       )
       SecurityContextHolder.setContext(context)
 

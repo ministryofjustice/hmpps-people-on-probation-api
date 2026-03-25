@@ -76,7 +76,7 @@ class OpenApiDocsTest : IntegrationTestBase() {
   }
 
   @ParameterizedTest
-  @CsvSource(value = ["hmpps-auth-token, SCOPE_read"])
+  @CsvSource(value = ["hmpps-auth-token, ROLE_PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI"])
   fun `the security scheme is setup for bearer tokens`(key: String, role: String) {
     webTestClient.get()
       .uri("/v3/api-docs")
@@ -90,7 +90,7 @@ class OpenApiDocsTest : IntegrationTestBase() {
         assertThat(it).contains(role)
       }
       .jsonPath("$.components.securitySchemes.$key.bearerFormat").isEqualTo("JWT")
-      .jsonPath("$.security[0].$key").isEqualTo(JSONArray().apply { this.add("read") })
+      .jsonPath("$.security[0].$key").isEqualTo(JSONArray())
   }
 
   @Test

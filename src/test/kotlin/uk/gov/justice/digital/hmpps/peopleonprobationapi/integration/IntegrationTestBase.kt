@@ -28,8 +28,8 @@ abstract class IntegrationTestBase {
 
   internal fun setAuthorisation(
     username: String? = "AUTH_ADM",
-    roles: List<String> = listOf(),
-    scopes: List<String> = listOf("read"),
+    roles: List<String> = listOf("PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI"),
+    scopes: List<String> = listOf(),
   ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(username = username, scope = scopes, roles = roles)
 
   protected fun stubPingWithResponse(status: Int) {
