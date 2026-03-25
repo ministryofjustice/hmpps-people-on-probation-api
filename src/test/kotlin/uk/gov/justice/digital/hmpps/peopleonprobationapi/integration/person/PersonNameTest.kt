@@ -43,10 +43,10 @@ class PersonNameTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `returns forbidden when token does not have read scope`() {
+  fun `returns forbidden when token does not have required role`() {
     webTestClient.get()
       .uri("/v1/person/X123456/name")
-      .headers(setAuthorisation(scopes = listOf("write")))
+      .headers(setAuthorisation(roles = listOf("OTHER_ROLE")))
       .exchange()
       .expectStatus().isForbidden
   }

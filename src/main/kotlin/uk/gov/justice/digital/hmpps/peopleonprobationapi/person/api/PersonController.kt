@@ -19,7 +19,7 @@ class PersonController(
   private val personService: PersonService,
 ) {
   @GetMapping("/{crn}/future-appointments")
-  @PreAuthorize("hasAuthority('SCOPE_read')")
+  @PreAuthorize("hasAuthority('ROLE_PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI')")
   @Operation(
     operationId = "getFutureAppointments",
     summary = "Get a person's future appointments by CRN",
@@ -33,7 +33,7 @@ class PersonController(
   ): PagedAppointmentsResponse = personService.getFutureAppointments(crn, page, size).toResponse()
 
   @GetMapping("/{crn}/past-appointments")
-  @PreAuthorize("hasAuthority('SCOPE_read')")
+  @PreAuthorize("hasAuthority('ROLE_PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI')")
   @Operation(
     operationId = "getPastAppointments",
     summary = "Get a person's past appointments by CRN",
@@ -47,7 +47,7 @@ class PersonController(
   ): PagedAppointmentsResponse = personService.getPastAppointments(crn, page, size).toResponse()
 
   @GetMapping("/{crn}/sentences")
-  @PreAuthorize("hasAuthority('SCOPE_read')")
+  @PreAuthorize("hasAuthority('ROLE_PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI')")
   @Operation(
     operationId = "getSentences",
     summary = "Get a person's sentence progress by CRN",
@@ -59,7 +59,7 @@ class PersonController(
   ): SentenceProgressResponse = personService.getSentenceProgress(crn).toResponse()
 
   @GetMapping("/{crn}/personal-details")
-  @PreAuthorize("hasAuthority('SCOPE_read')")
+  @PreAuthorize("hasAuthority('ROLE_PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI')")
   @Operation(
     operationId = "getPersonalDetails",
     summary = "Get a person's personal details by CRN",
@@ -71,7 +71,7 @@ class PersonController(
   ): PersonalDetailsResponse = personService.getPersonalDetails(crn).toResponse()
 
   @GetMapping("/{crn}/name")
-  @PreAuthorize("hasAuthority('SCOPE_read')")
+  @PreAuthorize("hasAuthority('ROLE_PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI')")
   @Operation(
     operationId = "getName",
     summary = "Get a person's name by CRN",

@@ -34,10 +34,10 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .components(
       io.swagger.v3.oas.models.Components().addSecuritySchemes(
         "hmpps-auth-token",
-        SecurityScheme().addBearerJwtRequirement("SCOPE_read"),
+        SecurityScheme().addBearerJwtRequirement("ROLE_PEOPLE_ON_PROBATION__PEOPLE_ON_PROBATION_UI"),
       ),
     )
-    .addSecurityItem(SecurityRequirement().addList("hmpps-auth-token", listOf("read")))
+    .addSecurityItem(SecurityRequirement().addList("hmpps-auth-token"))
 }
 
 private fun SecurityScheme.addBearerJwtRequirement(role: String): SecurityScheme = type(SecurityScheme.Type.HTTP)
